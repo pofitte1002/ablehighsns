@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ASTARGRAM</title>
+<style>
+  /* --- 나눔스퀘어 네오 폰트 적용 --- */
+  @font-face {
+    font-family: 'NanumSquareNeo';
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-aLt.woff2);
+    font-weight: 300; font-display: swap;
+  }
+  @font-face {
+    font-family: 'NanumSquareNeo';
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-bRg.woff2);
+    font-weight: 400; font-display: swap;
+  }
+  @font-face {
+    font-family: 'NanumSquareNeo';
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-cBd.woff2);
+    font-weight: 700; font-display: swap;
+  }
+  @font-face {
+    font-family: 'NanumSquareNeo';
+    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-dEb.woff2);
+    font-weight: 800; font-display: swap;
+  }
+
+  /* --- 공통 스타일 --- */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'NanumSquareNeo', -apple-system, sans-serif;
+    color: white;
+    overflow: hidden;
+  }
+
+  /* --- [1] 홈 화면 (Home Menu) --- */
+  #home-screen {
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* 홈 헤더 */
+  .home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    height: 50px;
+  }
+  .header-logo {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .header-icons { font-size: 22px; display: flex; gap: 18px; }
+
+  /* 스크롤 가능한 영역 (스토리 + 피드) */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+  }
+  .main-content::-webkit-scrollbar { display: none; } /* Chrome */
+
+  /* 스토리 바 */
+  .story-circles {
+    display: flex;
+    gap: 12px;
+    padding: 10px 15px;
+    overflow-x: auto;
+    border-bottom: 0.5px solid #262626;
+    scrollbar-width: none;
+  }
+  .story-circles::-webkit-scrollbar { display: none; }
+  
+  .story-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 75px;
+    cursor: pointer;
+  }
+  .circle-border {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    padding: 2.5px;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    margin-bottom: 5px;
+  }
+  .circle-img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid black;
+    object-fit: cover;
+  }
+  .circle-name { font-size: 11px; font-weight: 400; color: #efefef; }
+
+  /* 피드 게시물 */
+  .feed-post { border-bottom: 1px solid #262626; margin-bottom: 10px; }
+  .post-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px;
+  }
+  .post-user { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; }
+  .post-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+  .post-img { width: 100%; display: block; }
+  .post-actions { padding: 12px; display: flex; gap: 15px; font-size: 22px; }
+
+  /* 하단 네비게이션 바 */
+  .bottom-nav {
+    height: 50px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 0.5px solid #262626;
+    background: #000;
+  }
+  .nav-icon { font-size: 24px; cursor: pointer; }
+
+  /* --- [2] 스토리 화면 (Story View) - 기존 유지 --- */
+  #story-screen {
+    display: none;
+    width: 100%; max-width: 450px;
+    aspect-ratio: 9 / 16; max-height: 95vh;
+    position: relative; background: #222; border-radius: 12px; overflow: hidden;
+  }
+  #story-image { width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1; }
+  .overlay-gradient {
+    position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.6) 100%);
+    z-index: 2; pointer-events: none;
+  }
+  .header-ui { position: absolute; top: 0; left: 0; right: 0; padding: 12px 10px; z-index: 10; }
+  .progress-container { display: flex; gap: 4px; margin-bottom: 10px; }
+  .progress-bar-bg { flex: 1; height: 2px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; width: 0%; background: white; }
+  .progress-bar-bg.viewed .progress-bar-fill { width: 100%; }
+  .user-info-row { display: flex; justify-content: space-between; align-items: center; }
+  .user-profile { display: flex; align-items: center; gap: 8px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+  .username { font-weight: 700; font-size: 14px; }
+  .close-btn { font-size: 28px; cursor: pointer; padding: 5px; line-height: 1; }
+  .footer-ui { position: absolute; bottom: 15px; left: 0; right: 0; padding: 0 15px; display: flex; align-items: center; gap: 15px; z-index: 10; }
+  .msg-input { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.6); border-radius: 25px; padding: 10px 15px; color: white; outline: none; font-family: 'NanumSquareNeo'; }
+  .tap-area { position: absolute; top: 60px; bottom: 80px; z-index: 5; }
+  .tap-left { left: 0; width: 30%; }
+  .tap-right { right: 0; width: 70%; }
+</style>
+</head>
+<body>
+
+  <div id="home-screen">
+    <div class="home-header">
+      <div style="font-size: 22px;">+</div>
+      <div class="header-logo">ASTARGRAM</div>
+      <div class="header-icons">
+        <span>♡</span>
+        <span>✈️</span>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="story-circles" id="home-story-list">
+        </div>
+
+      <div class="feed-post">
+        <div class="post-header">
+          <div class="post-user">
+            <img src="https://poft.uk/kyryll/004.png" class="post-avatar">
+            <span>ablehigh_official</span>
+          </div>
+          <div>⋮</div>
+        </div>
+        <img src="https://poft.uk/kyryll/ablehigh-story9.webp" class="post-img">
+        <div class="post-actions">
+          <span>♡</span> <span>💬</span> <span>✈️</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-icon">🔍</span>
+      <span class="nav-icon">🎬</span>
+      <span class="nav-icon">🛍️</span>
+      <img src="https://poft.uk/kyryll/004.png" style="width:24px; height:24px; border-radius:50%; border:1px solid #fff;">
+    </div>
+  </div>
+
+  <div id="story-screen">
+    <img id="story-image" src="" alt="">
+    <div class="overlay-gradient"></div>
+    <div class="tap-area tap-left" onclick="handleTapLeft()"></div>
+    <div class="tap-area tap-right" onclick="handleTapRight()"></div>
+    <div class="header-ui">
+      <div class="progress-container" id="progress-container"></div>
+      <div class="user-info-row">
+        <div class="user-profile">
+          <img src="" class="avatar" id="current-avatar">
+          <span class="username" id="current-username"></span>
+        </div>
+        <div class="close-btn" onclick="goHome()">&times;</div>
+      </div>
+    </div>
+    <div class="footer-ui">
+      <input type="text" class="msg-input" placeholder="메시지 보내기">
+      <div class="footer-icons"><span>♡</span><span>✈️</span></div>
+    </div>
+  </div>
+
+<script>
+  // --- 데이터: 기존 유지 ---
+  const allUsersData = [
+    {
+      username: 'ablehigh_official',
+      avatar: 'https://poft.uk/kyryll/001.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story7.webp']
+    },
+    {
+      username: 'able_literary',
+      avatar: 'https://poft.uk/kyryll/002.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story5.webp']
+    },
+    {
+      username: 'y.bxxn_',
+      avatar: 'https://poft.uk/kyryll/004.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story1.webp']
+    },
+    {
+      username: 'e._.ji_:)',
+      avatar: 'https://poft.uk/kyryll/004.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story3.webp']
+    },
+    {
+      username: 'jimin_0427',
+      avatar: 'https://poft.uk/kyryll/004.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story2.webp']
+    },
+    {
+      username: '0813.se_ah',
+      avatar: 'https://poft.uk/kyryll/004.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story4.webp']
+    },
+    {
+      username: 'achu_band',
+      avatar: 'https://poft.uk/kyryll/003.png',
+      stories: ['https://poft.uk/kyryll/ablehigh-story6.webp']
+    }
+  ];
+
+  const STORY_DURATION = 5000;
+  let userIdx = 0, storyIdx = 0, startTime = 0, animationFrameId;
+
+  const homeScreen = document.getElementById('home-screen');
+  const storyScreen = document.getElementById('story-screen');
+  const storyImg = document.getElementById('story-image');
+  const progressContainer = document.getElementById('progress-container');
+
+  function initHome() {
+    const list = document.getElementById('home-story-list');
+    // 내 스토리 추가 (이미지 기반)
+    list.innerHTML = `
+      <div class="story-circle">
+        <div class="circle-border" style="background: none; border: 1px solid #555;">
+          <img src="https://poft.uk/kyryll/004.png" class="circle-img" style="opacity: 0.6;">
+        </div>
+        <span class="circle-name">내 스토리</span>
+      </div>
+    `;
+    
+    allUsersData.forEach((user, idx) => {
+      const circle = document.createElement('div');
+      circle.className = 'story-circle';
+      circle.innerHTML = `
+        <div class="circle-border"><img src="${user.avatar}" class="circle-img"></div>
+        <span class="circle-name">${user.username}</span>
+      `;
+      circle.onclick = () => startStory(idx);
+      list.appendChild(circle);
+    });
+  }
+
+  function startStory(uIdx) {
+    userIdx = uIdx; storyIdx = 0;
+    homeScreen.style.display = 'none';
+    storyScreen.style.display = 'block';
+    renderUserUI(); loadStory();
+  }
+
+  function goHome() {
+    cancelAnimationFrame(animationFrameId);
+    storyScreen.style.display = 'none';
+    homeScreen.style.display = 'flex';
+  }
+
+  function renderUserUI() {
+    const user = allUsersData[userIdx];
+    document.getElementById('current-username').innerText = user.username;
+    document.getElementById('current-avatar').src = user.avatar;
+    progressContainer.innerHTML = '';
+    user.stories.forEach((_, i) => {
+      const bg = document.createElement('div');
+      bg.className = 'progress-bar-bg';
+      bg.innerHTML = `<div class="progress-bar-fill" id="pb-${i}"></div>`;
+      progressContainer.appendChild(bg);
+    });
+  }
+
+  function loadStory() {
+    const user = allUsersData[userIdx];
+    storyImg.src = user.stories[storyIdx];
+    const bars = document.querySelectorAll('.progress-bar-bg');
+    bars.forEach((bar, i) => {
+      bar.classList.toggle('viewed', i < storyIdx);
+      document.getElementById(`pb-${i}`).style.width = i < storyIdx ? '100%' : '0%';
+    });
+    startTime = Date.now();
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    animate();
+  }
+
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min((elapsed / STORY_DURATION) * 100, 100);
+    const currentBar = document.getElementById(`pb-${storyIdx}`);
+    if (currentBar) currentBar.style.width = `${progress}%`;
+    if (progress < 100) animationFrameId = requestAnimationFrame(animate);
+    else handleTapRight();
+  }
+
+  function handleTapRight() {
+    const user = allUsersData[userIdx];
+    if (storyIdx < user.stories.length - 1) { storyIdx++; loadStory(); }
+    else if (userIdx < allUsersData.length - 1) { userIdx++; storyIdx = 0; renderUserUI(); loadStory(); }
+    else goHome();
+  }
+
+  function handleTapLeft() {
+    const elapsed = Date.now() - startTime;
+    if (elapsed > 500 || storyIdx === 0) {
+      if (storyIdx === 0 && userIdx > 0 && elapsed < 500) { userIdx--; storyIdx = allUsersData[userIdx].stories.length - 1; renderUserUI(); loadStory(); }
+      else loadStory();
+    } else { storyIdx--; loadStory(); }
+  }
+
+  initHome();
+</script>
+</body>
+</html>
